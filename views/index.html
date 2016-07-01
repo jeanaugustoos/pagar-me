@@ -1,0 +1,191 @@
+<html>
+	<head>
+		<title>Pagar-me</title>
+		
+		<!--Import jQuery before materialize.js-->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
+    <script src="https://assets.pagar.me/js/pagarme.min.js"></script>
+
+		<!--Import Google Icon Font-->
+    <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css"  media="screen,projection"/>
+	</head>
+	<body>
+		<div class="container">
+			<div class="row">
+				<div class="logo">
+					<blockquote>
+						<i class="material-icons medium">payment</i>
+						<span>PAGAR.ME</span>
+					</blockquote>
+				</div>
+				<form name="payment_form" id="payment_form" action="" class="col s6">
+					<div class="row">
+						<div class="input-field col s12">
+							<input name="amount" id="amount" type="text" readonly="" value="">
+							<label for="amount">Valor</label>
+						</div>
+					</div>
+		    	<div class="row">
+		    		<div class="input-field col s12">
+					    <select name="payment_method" id="payment_method">
+					      <option value="" disabled selected>Formas de Pagamento</option>
+					      <option value="boleto">Boleto</option>
+					      <option value="credit_card">Cartão de Crédito</option>
+					    </select>
+					    <label></label>
+					  </div>
+		    	</div>
+		      <div class="row" id="card_informations">
+		        <div class="input-field col s6">
+		          <input name="card_number" id="card_number" type="text" class="validate">
+		          <label for="card_number">Número do cartão</label>
+		        </div>
+		        <div class="input-field col s6">
+		          <input name="card_holder_name" id="card_holder_name" type="text" class="validate">
+		          <label for="card_holder_name">Nome do titular</label>
+		        </div>
+		        <div class="input-field col s6">
+		          <input name="card_expiration_month" id="card_expiration_month" type="text" class="validate">
+		          <label for="card_expiration_month">Mês de expiração</label>
+		        </div>
+		        <div class="input-field col s6">
+		          <input name="card_expiration_year" id="card_expiration_year" type="text" class="validate">
+		          <label for="card_expiration_year">Ano de expiração</label>
+		        </div>
+		        <div class="input-field col s6">
+		          <input name="card_cvv" id="card_cvv" type="text" class="validate">
+		          <label for="card_cvv">Código de segurança</label>
+		        </div>
+		      </div>
+		      <div class="row">
+		      	<p>Deseja realizar o pagamento com mais de 1 recebedor?</p>
+		      	<div class="switch">
+					    <label>
+					      Não
+					      <input type="checkbox" name="recipients" id="recipients">
+					      <span class="lever"></span>
+					      Sim
+					    </label>
+					  </div>
+					</div>
+				  <div class="row margin-top" id="recipients_informations">
+				  	<div class="input-field col s6">
+							<input name="recipient1" id="recipient1" type="number" min="1" max="99" value="50">
+							<label for="recipient-1">Recebedor 1</label>
+						</div>
+						<div class="input-field col s6">
+							<input name="recipient2" id="recipient2" type="number" min="1" max="99" value="50">
+							<label for="recipient-2">Recebedor 2</label>
+						</div>
+				  </div>
+		      <div class="row">
+		      	<button class="btn waves-effect waves-light right" type="button" onclick="pagar()">Pagar</button>
+		      </div>
+	      </form>
+	    </div>
+    </div>
+    <script type="text/javascript">
+    	$(document).ready(function() {
+		    $('select').material_select();
+		    $('#amount').val(parseInt(Math.random() * 100));
+		    $('#card_informations').hide();
+		    $('#recipients_informations').hide();
+		  });
+
+		  function pagar() {
+
+		  	PagarMe.encryption_key = "ek_test_x0TXM4MnLDeKqTJyQYb2BO8vOFFENW";
+
+		  	var form = $("#payment_form");
+
+		  	if ($('#payment_method') == 'credit_card') {
+
+			  	var creditCard = new PagarMe.creditCard();
+	        creditCard.cardHolderName = $("#payment_form #card_holder_name").val();
+	        creditCard.cardExpirationMonth = $("#payment_form #card_expiration_month").val();
+	        creditCard.cardExpirationYear = $("#payment_form #card_expiration_year").val();
+	        creditCard.cardNumber = $("#payment_form #card_number").val();
+	        creditCard.cardCVV = $("#payment_form #card_cvv").val();
+
+	        var fieldErrors = creditCard.fieldErrors();
+
+	        for(var field in fieldErrors) { hasErrors = true; break; }
+	      
+	        var hasErrors = false;
+	        if(hasErrors) {
+	            alert(fieldErrors);
+	        } else {
+	            creditCard.generateHash(function(cardHash) {
+
+	                form.append($('<input type="hidden" name="card_hash">').val(cardHash));
+
+	                submitForm(form);                
+	            });
+	        }
+	      } else {
+	      	submitForm(form);
+	      }
+
+        return false;
+		 	}
+
+		 	function loadForm() {
+		 		$('select').material_select();
+		    $('#amount').val(parseInt(Math.random() * 100));
+		    
+		    $('#card_informations').hide();
+
+		    $("#payment_form #card_holder_name").val();
+		    $("#payment_form #card_expiration_month").val();
+		    $("#payment_form #card_expiration_year").val();
+		    $("#payment_form #card_number").val();
+		    $("#payment_form #card_cvv").val();
+
+		    $('#recipients_informations').hide();
+
+		    $('#recipients').attr("checked", false);
+				$('#recipient1').val(50);
+		    $('#recipient2').val(50);
+		 	}
+
+		 	function submitForm (form) {
+		 		console.log(form.serialize());
+		 		$.ajax({
+			    url: 'http://localhost:3000/transaction/new',
+			    type: 'POST',
+			    dataType: 'json',
+			    data: form.serialize(),
+			    success: function (data) {
+		        Materialize.toast('Sucesso', 5000,'',function(){
+		        	loadForm();
+		        });
+			    },
+			    error: function (jqXHR) {
+			    	console.log(jqXHR);
+			    }
+				});
+		 	}
+
+		  $('#payment_method').change(() => {
+		  	if ($('#payment_method').val() === 'credit_card') $('#card_informations').show();
+		  	else $('#card_informations').hide();
+		  })
+
+		  $('#recipients').change(() => {
+		  	if ($('#recipients').is(':checked')) $('#recipients_informations').show();
+		  	else $('#recipients_informations').hide();
+		  });
+
+		  $('#recipient1').change(() => {
+		  	$('#recipient2').val(100 - $('#recipient1').val());
+		  });
+
+		  $('#recipient2').change(() => {
+		  	$('#recipient1').val(100 - $('#recipient2').val());
+		  });
+    </script>
+	</body>
+</html>
